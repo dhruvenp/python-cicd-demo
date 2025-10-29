@@ -17,30 +17,9 @@ spec:
       containers:
       - name: python-container
         image: dhruvenp/demo-python:latest
-        imagePullPolicy: Always  # ADDED: Always pull latest image
+        imagePullPolicy: Always
         ports:
         - containerPort: 5000
-        # ADDED: Health checks
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 5000
-          initialDelaySeconds: 10
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: 5000
-          initialDelaySeconds: 5
-          periodSeconds: 5
-        # ADDED: Resource limits
-        resources:
-          requests:
-            memory: "128Mi"
-            cpu: "100m"
-          limits:
-            memory: "256Mi"
-            cpu: "200m"
 ---
 apiVersion: v1
 kind: Service
