@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: python-app
+  labels:
+    app: py
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: py
+  template:
+    metadata:
+      labels:
+        app: py
+    spec:
+      containers:
+      - name: python-container
+        image: dhruvenp/demo-python:latest
+        imagePullPolicy: Always  # ADDED: Always pull latest image
+        ports:
+        - containerPort: 5000
+        # ADDED: Health checks
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        # ADDED: Resource limits
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-nodeport-service
+spec:
+  type: NodePort
+  selector:
+    app: py
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5000
+      nodePort: 30080
