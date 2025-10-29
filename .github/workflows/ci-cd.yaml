@@ -116,10 +116,13 @@ jobs:
       run: |
         echo "Deployment Status:"
         kubectl get deployment python-app
+        echo ""
         echo "Pods Status:"
         kubectl get pods -l app=py
+        echo ""
         echo "Service Status:"
         kubectl get svc my-nodeport-service
+        echo ""
         echo "Recent Events:"
         kubectl get events --sort-by=.metadata.creationTimestamp | tail -10
         
@@ -127,20 +130,28 @@ jobs:
       run: |
         MINIKUBE_IP=$(minikube ip)
         echo "Minikube IP: $MINIKUBE_IP"
+        echo "Testing application health endpoint..."
         for i in {1..5}; do
-          if curl -f http://$MINIKUBE_IP:30080/health; then
+          if curl -f -s http://$MINIKUBE_IP:30080/health; then
+            echo ""
             echo "✅ Health check passed!"
-            break
+            exit 0
           else
-            echo "Attempt $i failed, retrying..."
+            echo "Attempt $i failed, retrying in 5 seconds..."
             sleep 5
           fi
         done
+        echo "❌ Health check failed after 5 attempts"
+        exit 1
         
     - name: 📍 Access Information
+      if: success()
       run: |
         MINIKUBE_IP=$(minikube ip)
+        echo "=========================================="
         echo "🎉 Deployment Successful!"
-        echo "Access: http://$MINIKUBE_IP:30080"
-        echo "Health: http://$MINIKUBE_IP:30080/health"
-        echo "App info: http://$MINIKUBE_IP:30080/info"
+        echo "=========================================="
+        echo "Application URL: http://$MINIKUBE_IP:30080"
+        echo "Health Check:    http://$MINIKUBE_IP:30080/health"
+        echo "App Info:        http://$MINIKUBE_IP:30080/info"
+        echo "=========================================="
